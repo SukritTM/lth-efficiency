@@ -11,7 +11,7 @@ class PrunableModel(nn.Module):
         self.reinitialize_randomly()
         self.device = device
 
-
+        self.model.to(device=self.device)
         # save the initialization
         self.saved_initialization = dict()
         for key in dict(model.named_parameters()).keys():
