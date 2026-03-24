@@ -1,21 +1,21 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from __globals__ import DEVICE
 
 
 class PrunableModel(nn.Module):
-    def __init__(self, model, mask=None):
+    def __init__(self, model, mask=None, device=torch.device('cpu')):
         super().__init__()
         self.model = model
         self.mask = mask
         self.reinitialize_randomly()
+        self.device = device
 
 
         # save the initialization
         self.saved_initialization = dict()
         for key in dict(model.named_parameters()).keys():
-            self.saved_initialization[key] = torch.tensor(dict(model.named_parameters())[key].data.clone().detach().numpy()).to(device=DEVICE)
+            self.saved_initialization[key] = torch.tensor(dict(model.named_parameters())[key].data.clone().detach().numpy()).to(device=self.device)
 
         self._apply_mask()
     
@@ -86,7 +86,7 @@ class PrunableModel(nn.Module):
         thres = unpruned_weights[num_weights_to_prune]
 
         prev_masked_out_params = {k: v.detach().cpu().numpy()*self.mask[k] for k, v in self.model.named_parameters()}
-        new_mask = {k: torch.tensor((np.abs(v) > thres).astype(np.float32)).to(DEVICE) for k, v in prev_masked_out_params.items()}
+        new_mask = {k: torch.tensor((np.abs(v) > thres).astype(np.float32)).to(self.device) for k, v in prev_masked_out_params.items()}
 
         self.mask = new_mask
         self._apply_mask()
