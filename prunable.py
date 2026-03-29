@@ -90,3 +90,15 @@ class PrunableModel(nn.Module):
 
         self.mask = new_mask
         self._apply_mask()
+
+def construct_mlp(layer_config: list[int], flatten_input = False) -> nn.Sequential:
+    layers = [nn.Flatten()] if flatten_input else []
+    for i in range(len(layer_config) - 1):
+        in_features = layer_config[i]
+        out_features = layer_config[i+1]
+        layers.append(nn.Linear(in_features, out_features))
+
+        if i < len(layer_config) - 2:
+            layers.append(nn.ReLU())
+
+    return nn.Sequential(*layers)
