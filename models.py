@@ -102,3 +102,4 @@ def construct_mlp(layer_config: list[int], flatten_input = False) -> nn.Sequenti
             layers.append(nn.ReLU())
 
     return nn.Sequential(*layers)
+
