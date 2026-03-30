@@ -3,3 +3,5 @@
 *.pkl
 plots
 experiment_data/
+__pycache__
+datasets/
