@@ -7,12 +7,13 @@ import numpy as np
 from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 from LTH.models import construct_mlp
+from LTH.models import PrunableModel
 
+import os
 import pickle
 import argparse
 from time import perf_counter as pf
 
-from LTH.models import PrunableModel
 
 tseed = 468746545260+1
 nseed = 65431+1
@@ -223,6 +224,7 @@ results['search-hits'] = hits
 
 print(results)
 
-import pickle
+if not os.path.exists('experiment_data'):
+    os.mkdir('experiment_data')
 with open(f'experiment_data/search-data-ss-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-n{num_experiments}-s{hidden_size}.pkl', 'wb') as f:
     pickle.dump(results, f)

@@ -8,6 +8,7 @@ from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 from LTH.models import construct_mlp
 
+import os
 import pickle
 import argparse
 
@@ -54,5 +55,8 @@ results['FC-train-acc']  = train_acc
 results['FC-test-loss']  = test_loss
 results['FC-test-acc']   = test_acc
 
+
+if not os.path.exists('experiment_data'):
+    os.mkdir('experiment_data')
 with open(f'experiment_data/test-data-ss-e{EPOCHS}-s{hidden_size}.pkl', 'wb') as f:
     pickle.dump(results, f)
