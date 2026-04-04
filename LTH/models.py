@@ -15,7 +15,7 @@ class PrunableModel(nn.Module):
         # save the initialization
         self.saved_initialization = dict()
         for key in dict(model.named_parameters()).keys():
-            self.saved_initialization[key] = torch.tensor(dict(model.named_parameters())[key].data.clone().detach().numpy()).to(device=self.device)
+            self.saved_initialization[key] = torch.tensor(dict(model.named_parameters())[key].data.clone().detach().cpu().numpy()).to(device=self.device)
 
         self._apply_mask()
     
