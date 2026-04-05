@@ -154,7 +154,7 @@ results['pruned-train-acc-after']  = []
 results['pruned-test-loss-after']  = []
 results['pruned-test-acc-after']   = []
 
-
+print ('Training pruned models...', end='', flush=True)
 for prunable in models:
 # for i in range(len(models)):
     prunable.to(device=DEVICE)
@@ -183,10 +183,10 @@ for prunable in models:
     results['pruned-test-acc-after'].append(test_acc)  
 
     prunable.to(device='cpu')
-
+print('done\n')
 
 train_losses, train_accs, test_losses, test_accs = [], [], [], []
-print('beginning reinit experiments...')
+print('beginning reinit trials...')
 hits = {}
 for i in range(num_experiments):
     timer = pf()
@@ -213,7 +213,7 @@ for i in range(num_experiments):
 
     timer = pf() - timer
     prunable.to(device='cpu')
-    print(f'experiment {i+1} complete, took {timer:0.2f} seconds', flush=True)
+    print(f'trial {i+1} complete, took {timer:0.2f} seconds', flush=True)
 
 results['searchexp-train-loss'] = train_losses
 results['searchexp-train-acc']  = train_accs
@@ -222,7 +222,10 @@ results['searchexp-test-acc']   = test_accs
 
 results['search-hits'] = hits
 
-print(results)
+print('\nExperiment complete')
+from pprint import pprint
+print('Saved:')
+pprint(list(results.keys()))
 
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
