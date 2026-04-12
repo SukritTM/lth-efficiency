@@ -12,6 +12,10 @@ class PrunableModel(nn.Module):
         self.device = device
 
         self.model.to(device=self.device)
+        if mask is not None: self.mask = {k: 
+                                          torch.tensor(v).to(device=self.device) if type(v) is not torch.Tensor else v.clone().detach().to(device=self.device) 
+                                          for k, v in mask.items()}
+
         # save the initialization
         self.saved_initialization = dict()
         for key in dict(model.named_parameters()).keys():
