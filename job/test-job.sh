@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -c 4
+#SBATCH --mem 16384
+#SBATCH -p gpu
+#SBATCH -G 1
+#SBATCH --constraint=l40s
+#SBATCH -t 3:30:00
+#SBATCH -o test-%j.out
+
+nvidia-smi
+module load conda/latest
+conda activate torchlth
+python /work/pi_jensen_umass_edu/sthiagarajam_umass_edu/lth_efficiency/test-experiment.py -e 2 -s 32 -d cuda
