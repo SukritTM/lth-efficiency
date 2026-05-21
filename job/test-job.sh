@@ -9,4 +9,4 @@
 nvidia-smi
 module load conda/latest
 conda activate torchlth
-python /work/pi_jensen_umass_edu/sthiagarajam_umass_edu/lth_efficiency/test-experiment.py -e 2 -s 32 -d cpu
+python /work/pi_jensen_umass_edu/sthiagarajam_umass_edu/lth-reimp/lth-efficiency/test-experiment.py -e 2 -s 32 -d cpu
