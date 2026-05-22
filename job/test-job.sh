@@ -4,7 +4,7 @@
 #SBATCH -p cpu
 #SBATCH -c 4
 #SBATCH -t 3:30:00
-#SBATCH -o test-%j.out
+#SBATCH -o experiment_data/logs/test-%j.out
 
 nvidia-smi
 module load conda/latest
