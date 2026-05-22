@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -c 4
-#SBATCH --mem 80G
+#SBATCH --mem 32767
 #SBATCH -p gpu
 #SBATCH -G 1
-#SBATCH --constraint=a100-80g
+#SBATCH --constraint=l40s
 #SBATCH -t 12:00:00
 #SBATCH -o logs/results-%j.out
 #SBATCH --array=0-7
