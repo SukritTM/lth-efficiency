@@ -3,7 +3,7 @@
 #SBATCH --mem 32767
 #SBATCH -p gpu
 #SBATCH --constraint=a100-80g
-#SBATCH -t 3:30:00
+#SBATCH -t 12:00:00
 #SBATCH -o logs/results-%j.out
 #SBATCH --array=0-7
 
