@@ -2,6 +2,7 @@
 #SBATCH -c 4
 #SBATCH --mem 80G
 #SBATCH -p gpu
+#SBATCH -G 1
 #SBATCH --constraint=a100-80g
 #SBATCH -t 12:00:00
 #SBATCH -o logs/results-%j.out
