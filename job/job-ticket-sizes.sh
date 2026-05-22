@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -c 4
-#SBATCH --mem 16384
+#SBATCH --mem 32767
 #SBATCH -p gpu
 #SBATCH --constraint=a100-80g
 #SBATCH -t 3:30:00
