@@ -5,7 +5,7 @@
 #SBATCH -G 1
 #SBATCH --constraint=l40s
 #SBATCH -t 12:00:00
-#SBATCH -o logs/results-%j.out
+#SBATCH -o logs/results-%A-%a.out
 #SBATCH --array=0-7
 
 P=(8 16 32 64 128 256 512 1024)
