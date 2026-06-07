@@ -21,7 +21,7 @@ def get_mnist_dataset():
 def get_pmnist_dataset(seed=None):
     tform = Compose([
         ToTensor(), 
-        PermutePixels(seed=None), 
+        PermutePixels(seed=seed), 
         ConvertImageDtype(torch.float32), 
         Lambda(lambda x: x/torch.tensor(1.0, dtype=torch.float32))
     ])
