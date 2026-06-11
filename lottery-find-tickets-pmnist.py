@@ -4,7 +4,7 @@ from torch.nn import functional as F
 
 import numpy as np
 
-from LTH.datasets import get_mnist_dataset, get_loaders
+from LTH.datasets import get_pmnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 from LTH.models import construct_mlp
 from LTH.models import PrunableModel
@@ -85,7 +85,7 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
     return models, train_losses, train_accs, test_losses, test_accs
 
 
-train_set, test_set = get_mnist_dataset()
+train_set, test_set = get_pmnist_dataset(seed=tseed+35465464)
 train_loader, test_loader = get_loaders(train_set, test_set, batch_size=64, shuffle=False)
 
 models, train_losses, train_accs, test_losses, test_accs = get_multiple_models(
