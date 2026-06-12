@@ -1,6 +1,9 @@
 import torch
 
 class PermutePixels(torch.nn.Module):
+    '''
+        Dataset transform for transforming MNIST into a permuted version of MNIST. Follows idiom as described on https://docs.pytorch.org/vision/main/auto_examples/transforms/plot_custom_transforms.html
+    '''
 
     def __init__(self, seed=None):
         super().__init__()
