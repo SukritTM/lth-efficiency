@@ -4,27 +4,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader # for type hinting only lol 
 
 
-class ModelGroup:
-    def __init__(self, models: list[nn.Module], optimizer_cls, loss_fn, optimizer_kwargs = {}):
-        self.models = models
-        self.streams = [torch.cuda.Stream() for _ in models]
-        self.optimizers = [optimizer_cls(model.parameters(), **optimizer_kwargs) for model in models]
-        self.loss_fn = loss_fn
-
-    def begin_training(self, train_loader, device=None):
-        if device is None:
-            device = next(self.models[0].parameters()).device
-        for model, optimizer, stream in zip(self.models, self.optimizers, self.streams):
-            model.train()
-            ... # TODO: Finish this
-
-
-
-
-
-
-
-
 def train_step(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.Module, optimizer: torch.optim.Optimizer, device=None):
     if device is None:
         device = X.device
