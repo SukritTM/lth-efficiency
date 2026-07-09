@@ -6,7 +6,7 @@
 #SBATCH --constraint=l40s
 #SBATCH -t 10:00:00
 #SBATCH -o logs/results-%A-%a.out
-#SBATCH --array=0-5
+#SBATCH --array=6-11
 
 P=(30 32 35 37 45 47 50 52 55 57 65 70)
 
