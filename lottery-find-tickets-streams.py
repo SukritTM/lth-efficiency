@@ -31,6 +31,7 @@ parser.add_argument('-r', '--num-rounds')
 parser.add_argument('-p', '--pruning-ratio')
 parser.add_argument('-t', '--num-tickets', default='15')
 parser.add_argument('-s', '--hidden-size', default='32')
+parser.add_argument('-l', '--loss', default='crossentropy', choices=['mse', 'crossentropy'], help='"mse" or "crossentropy"')
 parser.add_argument('-d', '--device')
 
 arguments = parser.parse_args()
@@ -44,6 +45,7 @@ hidden_size = int(arguments.hidden_size)
 pruning_ratio = float(arguments.pruning_ratio)
 num_rounds = int(arguments.num_rounds)
 NUM_TICKETS = int(arguments.num_tickets)
+loss_fn_type = arguments.loss
 
 results['config'] = {
     'epochs': EPOCHS,
@@ -63,7 +65,9 @@ def get_multiple_models_streams(n_models, train_loader, test_loader, train_set, 
     models: list[PrunableModel] = []
     optimizers = []
     
-    loss_fn = nn.CrossEntropyLoss(reduction='mean')
+    if loss_fn_type == 'crossentropy': loss_fn = nn.CrossEntropyLoss(reduction='mean')
+    elif loss_fn_type == 'mse': loss_fn = nn.MSELoss(reduction='mean')
+    else: raise Exception('Loss fn type was neither "mse" nor "crossentropy"')
 
     timer = pf()
     for i in range(n_models):
@@ -117,7 +121,9 @@ results['FC-test-losses']  = test_losses
 results['FC-test-accs']    = test_accs
 
 
-loss_fn = nn.CrossEntropyLoss(reduction='mean')
+if loss_fn_type == 'crossentropy': loss_fn = nn.CrossEntropyLoss(reduction='mean')
+elif loss_fn_type == 'mse': loss_fn = nn.MSELoss(reduction='mean')
+else: raise Exception('Loss fn type was neither "mse" nor "crossentropy"')
 n_epochs = EPOCHS
 
 # ITERATIVE MAGNITUDE PRUNING
