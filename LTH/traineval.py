@@ -25,6 +25,27 @@ def train_step(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.M
 
     return loss
 
+def train_step_l1(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.Module, optimizer: torch.optim.Optimizer, reg_coeff=1e-4, device=None):
+    if device is None:
+        device = X.device
+
+    X = X.to(device)
+    y = y.to(device)
+
+    optimizer.zero_grad()
+
+    y_pred = model(X)
+    # print(model(X))
+    l1_penalty = sum(x.abs().sum() for x in model.parameters())
+    # loss = loss_fn(y_pred, y)
+    yhot = F.one_hot(y, 10).to(torch.float32)
+    loss = loss_fn(y_pred, yhot) + reg_coeff*l1_penalty
+
+    loss.backward()
+    optimizer.step()
+
+    return loss
+
 def train_epoch(model, train_loader, loss_fn, optimizer, device=None):
     if device is None:
         device = next(model.parameters()).device
