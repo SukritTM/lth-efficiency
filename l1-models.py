@@ -122,7 +122,7 @@ results['model-params'] = cpuweights
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/st-subnetworks-e{EPOCHS}-t{NUM_TICKETS}-s{hidden_size}.pkl'
+out_path = f'experiment_data/l1-models-e{EPOCHS}-t{NUM_TICKETS}-s{hidden_size}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
