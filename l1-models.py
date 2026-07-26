@@ -43,6 +43,7 @@ loss_fn_type = arguments.loss
 results['config'] = {
     'epochs': EPOCHS,
     'hidden_size': hidden_size,
+    'loss': loss_fn_type,
 }
 
 
