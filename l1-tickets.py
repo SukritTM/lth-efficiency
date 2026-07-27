@@ -61,7 +61,7 @@ for idx in range(NUM_TICKETS):
  
     # Set model weights to winning-ticket init with mask applied
     prunable.apply_saved_initialization()
-    prunable.to(DEVICE)   
+    prunable.change_device(DEVICE)   
     models.append(prunable)
 
     optim = torch.optim.Adam(prunable.parameters(), lr=0.001)
