@@ -27,7 +27,7 @@ class PrunableModel(nn.Module):
         self.model.to(device=device)
 
         if self.mask is not None: self.mask = {k: 
-                                               torch.tensor(v).to(device=self.device) if type(v) is not torch.Tensor else v.clone().detach().to(device=device) 
+                                               torch.tensor(v).to(device=device) if type(v) is not torch.Tensor else v.clone().detach().to(device=device) 
                                                for k, v in self.mask.items()}
 
         for key, value in self.saved_initialization.items():
