@@ -49,7 +49,7 @@ for idx in range(NUM_TICKETS):
     # and any future retrieve_*() calls behave correctly.
     full_init = network_data['model-initializations'][idx]
     prunable.saved_initialization = {
-        key: tensor.clone().detach().to(prunable.device) for key, tensor in full_init.items()
+        key: tensor.clone().detach().to(DEVICE) for key, tensor in full_init.items()
     }
     prunable.apply_saved_initialization()
     prunable.find_mask(remove_fraction)
@@ -58,9 +58,7 @@ for idx in range(NUM_TICKETS):
     #     key: tensor.clone().detach().cpu()
     #     for key, tensor in subnetwork_data['winning-ticket-masks'][idx].items()
     # }
- 
-    # Set model weights to winning-ticket init with mask applied
-    prunable.apply_saved_initialization()
+
     # prunable.change_device(DEVICE)   
     models.append(prunable)
 
