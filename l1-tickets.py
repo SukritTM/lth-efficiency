@@ -43,13 +43,13 @@ for idx in range(NUM_TICKETS):
  
     # PrunableModel.__init__ calls reinitialize_randomly() then saves that state.
     # We immediately overwrite both below, so the device here is just 'cpu' for setup.
-    prunable = PrunableModel(model)
+    prunable = PrunableModel(model, device=DEVICE)
  
     # Restore the full (unpruned) initialization so apply_saved_initialization()
     # and any future retrieve_*() calls behave correctly.
     full_init = network_data['model-initializations'][idx]
     prunable.saved_initialization = {
-        key: tensor.clone().detach().cpu() for key, tensor in full_init.items()
+        key: tensor.clone().detach().to(prunable.device) for key, tensor in full_init.items()
     }
     prunable.apply_saved_initialization()
     prunable.find_mask(remove_fraction)
@@ -61,7 +61,7 @@ for idx in range(NUM_TICKETS):
  
     # Set model weights to winning-ticket init with mask applied
     prunable.apply_saved_initialization()
-    prunable.change_device(DEVICE)   
+    # prunable.change_device(DEVICE)   
     models.append(prunable)
 
     optim = torch.optim.Adam(prunable.parameters(), lr=0.001)
