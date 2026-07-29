@@ -39,8 +39,16 @@ class PrunableModel(nn.Module):
         if self.mask is None: return
         with torch.no_grad():
             for name, param in self.model.named_parameters():
-                param.data = param * self.mask[name] 
-    
+                # print(f'{param.device=}')
+                # print(f'{self.mask[name]=}')
+                try:
+                    param.data = param * self.mask[name] 
+                except RuntimeError as e:
+                    print(f'{name=}')
+                    print(f'{param.device=}')
+                    print(f'{self.mask[name].device=}')
+                    raise e
+                
     def retrieve_pruned_initialization(self):
         initialization = {key: self.saved_initialization[key].clone().detach() for key in self.saved_initialization.keys()}
         if self.mask is None: return initialization

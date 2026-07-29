@@ -33,6 +33,8 @@ hidden_size = int(cfg['hidden_size'])
 NUM_TICKETS = len(network_data['model-initializations'])
 DEVICE      = torch.device(arguments.device)
 
+print(repr(DEVICE))
+
 remove_fraction = float(arguments.remove_fraction)
 loss_fn_type = arguments.loss
 
@@ -65,6 +67,8 @@ for idx in range(NUM_TICKETS):
     optim = torch.optim.Adam(prunable.parameters(), lr=0.001)
     optimizers.append(optim)
 
+    prunable.change_device(DEVICE)
+
 train_set, test_set = get_mnist_dataset()
 train_loader, test_loader = get_loaders(train_set, test_set, batch_size=64, shuffle=False)
 
@@ -92,7 +96,6 @@ for i in range(NUM_TICKETS):
     train_loss, train_acc = evaluate_model(models[i], train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
     test_loss, test_acc = evaluate_model(models[i], test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
 
-    models[i].to(device='cpu')
     train_losses.append(train_loss)
     train_accs.append(train_acc)
     test_losses.append(test_loss)
@@ -118,7 +121,7 @@ for i in range(NUM_TICKETS):
     train_loss, train_acc = evaluate_model(models[i], train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
     test_loss, test_acc = evaluate_model(models[i], test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
 
-    models[i].to(device='cpu')
+    models[i].change_device(device='cpu')
     train_losses.append(train_loss)
     train_accs.append(train_acc)
     test_losses.append(test_loss)
