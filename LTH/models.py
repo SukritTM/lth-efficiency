@@ -82,6 +82,11 @@ class PrunableModel(nn.Module):
     def reinitialize_randomly(self):
         self._reinitialize_randomly_recurse(self.model)
         self._apply_mask()
+        if hasattr(self, 'saved_initialization'):
+            self.saved_initialization = {
+                name: param.detach().clone().to(self.device)
+                for name, param in self.model.named_parameters()
+            }
 
     def _reinitialize_randomly_recurse(self, obj: nn.Module):
         for child in obj.children():
