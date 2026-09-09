@@ -65,7 +65,10 @@ for idx in range(NUM_TICKETS):
     # prunable.saved_initialization = {
     #     key: tensor.clone().detach().cpu() for key, tensor in full_init.items()
     # }
- 
+    prunable.saved_initialization = {
+        key: tensor.clone().detach().to(DEVICE) for key, tensor in full_init.items()
+    }
+
     # Restore mask (already CPU tensors from the pkl)
     # prunable.mask = {
     #     key: tensor.clone().detach().cpu()
