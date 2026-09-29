@@ -11,4 +11,4 @@
 nvidia-smi
 module load conda/latest
 conda activate torchlth
-python /work/pi_jensen_umass_edu/sthiagarajam_umass_edu/lth-reimp/lth-efficiency/lottery-find-tickets.py -e 50 -r 10 -p 0.1487 -t 15 -s 16} -d cuda
+python /work/pi_jensen_umass_edu/sthiagarajam_umass_edu/lth-reimp/lth-efficiency/lottery-find-tickets.py -e 50 -r 10 -p 0.1487 -t 15 -s 16 -d cuda
