@@ -5,7 +5,7 @@
 #SBATCH -G 1
 #SBATCH --constraint=l40s
 #SBATCH -t 20:00:00
-#SBATCH -o logs/results-%A-%a.out
+#SBATCH -o logs/results-%j.out
 
 
 nvidia-smi
