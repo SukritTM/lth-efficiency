@@ -4,7 +4,7 @@
 #SBATCH -p gpu
 #SBATCH -G 1
 #SBATCH --constraint=l40s
-#SBATCH -t 2:00:00
+#SBATCH -t 22:00:00
 #SBATCH -o logs/results-%j.out
 #SBATCH --qos=short
 
