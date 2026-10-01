@@ -6,7 +6,6 @@
 #SBATCH --constraint=l40s
 #SBATCH -t 22:00:00
 #SBATCH -o logs/results-%j.out
-#SBATCH --qos=short
 
 nvidia-smi
 module load conda/latest
