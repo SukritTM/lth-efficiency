@@ -7,7 +7,7 @@ import numpy as np
 from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 from LTH.models import construct_mlp
-from LTH.models import PrunableModel
+from LTH.models import PrunableModel, exclude_tag
 
 import os
 import pickle
@@ -31,6 +31,7 @@ parser.add_argument('-n', '--num-experiments')
 parser.add_argument('-t', '--num-tickets', default='15')
 parser.add_argument('-s', '--hidden-size', default='32')
 parser.add_argument('-d', '--device')
+parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning')
 
 arguments = parser.parse_args()
 print(arguments)
@@ -44,8 +45,9 @@ pruning_ratio = float(arguments.pruning_ratio)
 num_rounds = int(arguments.num_rounds)
 num_experiments = int(arguments.num_experiments)
 NUM_TICKETS = int(arguments.num_tickets)
+EXCLUDE = arguments.exclude
 
-results['config'] = {'epochs': EPOCHS, 'num_rounds': num_rounds, 'pruning_ratio': pruning_ratio, 'num_experiments': num_experiments, 'hidden_size': hidden_size}
+results['config'] = {'epochs': EPOCHS, 'num_rounds': num_rounds, 'pruning_ratio': pruning_ratio, 'num_experiments': num_experiments, 'hidden_size': hidden_size, 'exclude': EXCLUDE}
 
 
 def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set, hidden_size=32, silent=True):
@@ -60,7 +62,7 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
 
         # if not silent: print(f'Starting model {i}')
         model = construct_mlp([784, hidden_size, 10], flatten_input=True)
-        prunable = PrunableModel(model, device=DEVICE)
+        prunable = PrunableModel(model, device=DEVICE, prune_exclude=EXCLUDE)
         # prunable.to(device=DEVICE)
 
         loss_fn = nn.CrossEntropyLoss(reduction='mean')
@@ -104,16 +106,18 @@ results['FC-train-accs']   = train_accs
 results['FC-test-losses']  = test_losses
 results['FC-test-accs']    = test_accs
 
-results['config'] = {'epochs': EPOCHS, 'num_rounds': num_rounds, 'pruning_ratio': pruning_ratio, 'num_experiments': num_experiments, 'hidden_size': hidden_size}
+results['config'] = {'epochs': EPOCHS, 'num_rounds': num_rounds, 'pruning_ratio': pruning_ratio, 'num_experiments': num_experiments, 'hidden_size': hidden_size, 'exclude': EXCLUDE}
 
 loss_fn = nn.CrossEntropyLoss(reduction='mean')
 n_epochs = EPOCHS
 
 # ITERATIVE MAGNITUDE PRUNING
 print('Beginning pruning...')
+results['sparsity-per-round'] = []
 for i, prunable in enumerate(models):
     prunable.to(device=DEVICE)
     timer = pf()
+    round_stats = []
     for r in range(num_rounds):
         prunable.apply_saved_initialization()
         # print(f'Round {r}, training...\n')
@@ -123,6 +127,8 @@ for i, prunable in enumerate(models):
         # print('')
 
         prunable.find_mask(pruning_ratio)
+        round_stats.append(prunable.sparsity_stats())
+    results['sparsity-per-round'].append(round_stats)
 
     # now we have found the lottery ticket
     prunable.apply_saved_initialization()
@@ -229,5 +235,5 @@ pprint(list(results.keys()))
 
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
-with open(f'experiment_data/search-data-ss-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-n{num_experiments}-s{hidden_size}.pkl', 'wb') as f:
+with open(f'experiment_data/search-data-ss-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-n{num_experiments}-s{hidden_size}{exclude_tag(EXCLUDE)}.pkl', 'wb') as f:
     pickle.dump(results, f)
