@@ -6,7 +6,7 @@
 #SBATCH --constraint=a100
 #SBATCH -t 19:00:00
 #SBATCH -o logs/results-%A-%a.out
-#SBATCH --array=0-8
+#SBATCH --array=0-7
 
 P=(16 32 64 128 256 300 512 1024)
 PR=(0.0221 0.0876 0.1487 0.2057 0.2589 0.2705 0.3085 0.3548)
