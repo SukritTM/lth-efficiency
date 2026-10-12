@@ -6,7 +6,7 @@ import numpy as np
 from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model
 from LTH.models import construct_mlp
-from LTH.models import PrunableModel
+from LTH.models import PrunableModel, exclude_tag
  
 import os
 import pickle
@@ -37,6 +37,7 @@ EPOCHS        = cfg['epochs']
 num_rounds    = cfg['num_rounds']
 pruning_ratio = cfg['pruning_ratio']
 hidden_size   = cfg['hidden_size']
+EXCLUDE       = cfg.get('exclude')
 NUM_TICKETS   = len(subnetwork_data['winning-tickets'])
  
 print(f'Loaded config: {cfg}')
@@ -57,7 +58,7 @@ for idx in range(NUM_TICKETS):
  
     # PrunableModel.__init__ calls reinitialize_randomly() then saves that state.
     # We immediately overwrite both below, so the device here is just 'cpu' for setup.
-    prunable = PrunableModel(model, mask=subnetwork_data['winning-ticket-masks'][idx], device=DEVICE)
+    prunable = PrunableModel(model, mask=subnetwork_data['winning-ticket-masks'][idx], device=DEVICE, prune_exclude=EXCLUDE)
  
     # Restore the full (unpruned) initialization so apply_saved_initialization()
     # and any future retrieve_*() calls behave correctly.
@@ -144,7 +145,7 @@ if not os.path.exists('experiment_data'):
 out_path = (
     f'experiment_data/search-data-ss'
     f'-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}'
-    f'-t{NUM_TICKETS}-n{num_experiments}-s{hidden_size}.pkl'
+    f'-t{NUM_TICKETS}-n{num_experiments}-s{hidden_size}{exclude_tag(EXCLUDE)}.pkl'
 )
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)

@@ -9,7 +9,7 @@ from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 # from LTH.traineval import evaluate_model, evaluate_model_loader
 from LTH.traineval_stream import train_loop_stream
 from LTH.models import construct_mlp
-from LTH.models import PrunableModel
+from LTH.models import PrunableModel, exclude_tag
 
 import os
 import pickle
@@ -33,6 +33,7 @@ parser.add_argument('-t', '--num-tickets', default='15')
 parser.add_argument('-s', '--hidden-size', default='32')
 parser.add_argument('-l', '--loss', default='crossentropy', choices=['mse', 'crossentropy'], help='"mse" or "crossentropy"')
 parser.add_argument('-d', '--device')
+parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning')
 
 arguments = parser.parse_args()
 print(arguments)
@@ -45,6 +46,7 @@ hidden_size = int(arguments.hidden_size)
 pruning_ratio = float(arguments.pruning_ratio)
 num_rounds = int(arguments.num_rounds)
 NUM_TICKETS = int(arguments.num_tickets)
+EXCLUDE = arguments.exclude
 loss_fn_type = arguments.loss
 
 results['config'] = {
@@ -52,6 +54,7 @@ results['config'] = {
     'num_rounds': num_rounds,
     'pruning_ratio': pruning_ratio,
     'hidden_size': hidden_size,
+    'exclude': EXCLUDE,
 }
 
 
@@ -72,7 +75,7 @@ def get_multiple_models_streams(n_models, train_loader, test_loader, train_set, 
     timer = pf()
     for i in range(n_models):
         model = construct_mlp([784, hidden_size, 10], flatten_input=True)
-        prunable = PrunableModel(model, device=DEVICE)
+        prunable = PrunableModel(model, device=DEVICE, prune_exclude=EXCLUDE)
         optimizer = torch.optim.Adam(params=prunable.parameters(), lr=0.001)
         models.append(prunable)
         optimizers.append(optimizer)
@@ -144,6 +147,7 @@ print('Beginning pruning...')
 #     print(f'Pruning {i} complete, took {timer:0.2f} seconds', flush=True)
 
 timer = pf()
+results['sparsity-per-round'] = [[] for _ in models]
 for i, prunable in enumerate(models):
     prunable.to(device=DEVICE)
 
@@ -154,6 +158,7 @@ for r in range(num_rounds):
     train_loop_stream(models, train_loader, loss_fn, new_optimizers, n_epochs)
     torch.cuda.synchronize()
     for prunable in models: prunable.find_mask(pruning_ratio)
+    for i, prunable in enumerate(models): results['sparsity-per-round'][i].append(prunable.sparsity_stats())
 
 for prunable in models: prunable.apply_saved_initialization()
 timer = pf() - timer
@@ -219,7 +224,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/st-subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}.pkl'
+out_path = f'experiment_data/st-subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 

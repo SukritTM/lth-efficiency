@@ -7,7 +7,7 @@ from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model
 from LTH.traineval_stream import train_loop_l1_stream, train_loop_stream
 from LTH.models import construct_mlp
-from LTH.models import PrunableModel
+from LTH.models import PrunableModel, exclude_tag
  
 import os
 import pickle
@@ -20,6 +20,7 @@ parser.add_argument('-f', '--filepath')
 parser.add_argument('-r', '--remove-fraction')
 parser.add_argument('-l', '--loss', default='auto', choices=['mse', 'crossentropy', 'auto'], help='"mse", "crossentropy", or "auto". "auto" uses the value in the config, if it exists, else defaults to crossentropy.')
 parser.add_argument('-d', '--device')
+parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning. Defaults to the input file\'s setting, if any.')
 
 arguments = parser.parse_args()
 print(arguments)
@@ -37,15 +38,17 @@ print(repr(DEVICE))
 
 remove_fraction = float(arguments.remove_fraction)
 loss_fn_type = arguments.loss
+EXCLUDE = arguments.exclude if arguments.exclude is not None else cfg.get('exclude')
 
 models: list[PrunableModel] = []
 optimizers: list[torch.optim.Optimizer] = []
+ticket_sparsity = []
 for idx in range(NUM_TICKETS):
     model = construct_mlp([784, hidden_size, 10], flatten_input=True)
  
     # PrunableModel.__init__ calls reinitialize_randomly() then saves that state.
     # We immediately overwrite both below, so the device here is just 'cpu' for setup.
-    prunable = PrunableModel(model, device=DEVICE)
+    prunable = PrunableModel(model, device=DEVICE, prune_exclude=EXCLUDE)
  
     # Restore the full (unpruned) initialization so apply_saved_initialization()
     # and any future retrieve_*() calls behave correctly.
@@ -55,6 +58,7 @@ for idx in range(NUM_TICKETS):
     }
     prunable.apply_saved_initialization()
     prunable.find_mask(remove_fraction)
+    ticket_sparsity.append([prunable.sparsity_stats()])
     # Restore mask (already CPU tensors from the pkl)
     # prunable.mask = {
     #     key: tensor.clone().detach().cpu()
@@ -78,6 +82,8 @@ for key, val in network_data.items():
 
 results['config']['remove_fraction'] = remove_fraction
 results['config']['ticket-loss-choice'] = loss_fn_type
+results['config']['exclude'] = EXCLUDE
+results['sparsity-per-round'] = ticket_sparsity
 
 if loss_fn_type == 'auto':
     parent_type = cfg.get('loss')
@@ -147,7 +153,7 @@ results['input-file-keys'] = network_data
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/l1-tickets-e{EPOCHS}-t{NUM_TICKETS}-s{hidden_size}-r{remove_fraction:.4f}.pkl'
+out_path = f'experiment_data/l1-tickets-e{EPOCHS}-t{NUM_TICKETS}-s{hidden_size}-r{remove_fraction:.4f}{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
