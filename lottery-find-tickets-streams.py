@@ -188,6 +188,8 @@ results['pruned-train-acc-after']  = []
 results['pruned-test-loss-after']  = []
 results['pruned-test-acc-after']   = []
 
+results['trained-tickets'] = []
+
 # TODO: Make this use streaming too
 
 print('Training pruned models...', end='', flush=True)
@@ -212,6 +214,9 @@ for prunable in models:
     results['pruned-train-acc-after'].append(train_acc)
     results['pruned-test-loss-after'].append(test_loss)
     results['pruned-test-acc-after'].append(test_acc)
+
+    prunable._apply_mask()
+    results['trained-tickets'].append({name: param.cpu().clone().detach() for name, param in prunable.model.named_parameters()})
 
     prunable.to(device='cpu')
 print('done\n')
