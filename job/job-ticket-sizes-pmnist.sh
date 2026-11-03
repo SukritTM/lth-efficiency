@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -c 4
 #SBATCH --mem 32767
-#SBATCH -p gpu
+#SBATCH -p gpu-highvram
 #SBATCH -G 1
 #SBATCH --constraint=l40s
 #SBATCH -t 15:00:00
