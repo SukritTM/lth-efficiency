@@ -226,7 +226,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}-seed{int(arguments.seed)}{exclude_tag(EXCLUDE)}.pkl'
+out_path = f'experiment_data/st-subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}-seed{int(arguments.seed)}{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
