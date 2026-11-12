@@ -90,7 +90,7 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
     return models, train_losses, train_accs, test_losses, test_accs
 
 
-train_set, test_set = get_pmnist_dataset(seed=tseed+35465464)
+train_set, test_set = get_pmnist_dataset(seed=tseed+35465464+int(arguments.seed))
 train_loader, test_loader = get_loaders(train_set, test_set, batch_size=64, shuffle=False)
 
 models, train_losses, train_accs, test_losses, test_accs = get_multiple_models(
@@ -194,7 +194,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{exclude_tag(EXCLUDE)}.pkl'
+out_path = f'experiment_data/subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}-seed{int(arguments.seed)}-{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
