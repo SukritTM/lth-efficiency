@@ -18,8 +18,7 @@ from time import perf_counter as pf
 tseed = 468746545260+1
 nseed = 65431+1
 
-results = {}
-results['seeds'] = {'torch': tseed, 'numpy': nseed}
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--epochs')
@@ -34,8 +33,12 @@ parser.add_argument('-b', '--seed', default=0, help='set the random seed for the
 arguments = parser.parse_args()
 print(arguments)
 
+
 torch.manual_seed(tseed+int(arguments.seed))
 np.random.seed(nseed+int(arguments.seed))
+
+results = {}
+results['seeds'] = {'torch': tseed+int(arguments.seed), 'numpy': nseed+int(arguments.seed)}
 
 assert arguments.device in ['cpu', 'cuda'], 'Device must be either cpu or cuda'
 DEVICE = torch.device(arguments.device if torch.cuda.is_available() else 'cpu')
@@ -194,7 +197,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}-seed{int(arguments.seed)}-{exclude_tag(EXCLUDE)}.pkl'
+out_path = f'experiment_data/subnetworks-pmnist-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}-seed{int(arguments.seed)}{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
