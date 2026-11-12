@@ -71,8 +71,8 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
         optimizer = torch.optim.Adam(params=prunable.parameters(), lr=0.001)
 
         train_loop(prunable, train_loader, loss_fn, optimizer, EPOCHS, silent=True)
-        train_loss, train_acc = evaluate_model(prunable, train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
-        test_loss, test_acc = evaluate_model(prunable, test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
+        train_loss, train_acc = evaluate_model_loader(prunable, train_loader, loss_fn)
+        test_loss, test_acc = evaluate_model_loader(prunable, test_loader, loss_fn)
 
         prunable.to(device='cpu')
         train_losses.append(train_loss)
@@ -159,8 +159,8 @@ print('Training pruned models...', end='', flush=True)
 for prunable in models:
     prunable.to(device=DEVICE)
 
-    train_loss, train_acc = evaluate_model(prunable, train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
-    test_loss, test_acc = evaluate_model(prunable, test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
+    train_loss, train_acc = evaluate_model_loader(prunable, train_loader, loss_fn)
+    test_loss, test_acc = evaluate_model_loader(prunable, test_loader, loss_fn)
 
     results['pruned-train-loss-before'].append(train_loss)
     results['pruned-train-acc-before'].append(train_acc)
@@ -170,8 +170,8 @@ for prunable in models:
     new_optimizer = torch.optim.Adam(params=prunable.parameters(), lr=0.001)
     train_loop(prunable, train_loader, loss_fn, new_optimizer, n_epochs, silent=True)
 
-    train_loss, train_acc = evaluate_model(prunable, train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
-    test_loss, test_acc = evaluate_model(prunable, test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
+    train_loss, train_acc = evaluate_model_loader(prunable, train_loader, loss_fn)
+    test_loss, test_acc = evaluate_model_loader(prunable, test_loader, loss_fn)
 
     results['pruned-train-loss-after'].append(train_loss)
     results['pruned-train-acc-after'].append(train_acc)
