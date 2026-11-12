@@ -17,8 +17,6 @@ from time import perf_counter as pf
 
 tseed = 468746545260+1
 nseed = 65431+1
-torch.manual_seed(tseed)
-np.random.seed(nseed)
 
 results = {}
 results['seeds'] = {'torch': tseed, 'numpy': nseed}
@@ -31,9 +29,13 @@ parser.add_argument('-t', '--num-tickets', default='15')
 parser.add_argument('-s', '--hidden-size', default='32')
 parser.add_argument('-d', '--device')
 parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning')
+parser.add_argument('-b', '--seed', default=0, help='set the random seed for the script')
 
 arguments = parser.parse_args()
 print(arguments)
+
+torch.manual_seed(tseed+int(arguments.seed))
+np.random.seed(nseed+int(arguments.seed))
 
 assert arguments.device in ['cpu', 'cuda'], 'Device must be either cpu or cuda'
 DEVICE = torch.device(arguments.device if torch.cuda.is_available() else 'cpu')
