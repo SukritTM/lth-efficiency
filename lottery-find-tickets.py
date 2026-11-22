@@ -17,11 +17,6 @@ from time import perf_counter as pf
 
 tseed = 468746545260+1
 nseed = 65431+1
-torch.manual_seed(tseed)
-np.random.seed(nseed)
-
-results = {}
-results['seeds'] = {'torch': tseed, 'numpy': nseed}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--epochs')
@@ -31,9 +26,18 @@ parser.add_argument('-t', '--num-tickets', default='15')
 parser.add_argument('-s', '--hidden-size', default='32')
 parser.add_argument('-d', '--device')
 parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning')
+parser.add_argument('-b', '--seed', default=None, help='offset added to the random seeds; also adds -seed{b} to the output filename')
 
 arguments = parser.parse_args()
 print(arguments)
+
+seed_offset = 0 if arguments.seed is None else int(arguments.seed)
+seed_tag = '' if arguments.seed is None else f'-seed{seed_offset}'
+torch.manual_seed(tseed+seed_offset)
+np.random.seed(nseed+seed_offset)
+
+results = {}
+results['seeds'] = {'torch': tseed+seed_offset, 'numpy': nseed+seed_offset}
 
 assert arguments.device in ['cpu', 'cuda'], 'Device must be either cpu or cuda'
 DEVICE = torch.device(arguments.device if torch.cuda.is_available() else 'cpu')
@@ -192,7 +196,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{exclude_tag(EXCLUDE)}.pkl'
+out_path = f'experiment_data/subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{seed_tag}{exclude_tag(EXCLUDE)}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
