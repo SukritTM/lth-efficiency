@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader # for type hinting only lol 
 
 
-def train_step(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.Module, optimizer: torch.optim.Optimizer, device=None):
+def train_step(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.Module, optimizer: torch.optim.Optimizer, device=None, grad_recorder=None):
     if device is None:
         device = X.device
 
@@ -21,6 +21,7 @@ def train_step(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: nn.M
     loss = loss_fn(y_pred, yhot)
 
     loss.backward()
+    if grad_recorder is not None: grad_recorder.on_step(model)
     optimizer.step()
 
     return loss
@@ -46,24 +47,24 @@ def train_step_l1(model: nn.Module, X: torch.Tensor, y: torch.Tensor, loss_fn: n
 
     return loss
 
-def train_epoch(model, train_loader, loss_fn, optimizer, device=None):
+def train_epoch(model, train_loader, loss_fn, optimizer, device=None, grad_recorder=None):
     if device is None:
         device = next(model.parameters()).device
     model.train()
 
     total_loss = torch.tensor(0.0, device=device)
     for batch, (X, y) in enumerate(train_loader):
-        batch_loss = train_step(model, X, y, loss_fn, optimizer, device=device)
+        batch_loss = train_step(model, X, y, loss_fn, optimizer, device=device, grad_recorder=grad_recorder)
         total_loss += batch_loss.item()
 
     return total_loss / (batch + 1)
 
-def train_loop(model, train_loader, loss_fn, optimizer, n_epochs, silent=False, device=None):
+def train_loop(model, train_loader, loss_fn, optimizer, n_epochs, silent=False, device=None, grad_recorder=None):
     if device is None:
         device = next(model.parameters()).device
 
     for epoch in range(n_epochs):
-        epoch_loss = train_epoch(model, train_loader, loss_fn, optimizer, device=device)
+        epoch_loss = train_epoch(model, train_loader, loss_fn, optimizer, device=device, grad_recorder=grad_recorder)
 
         if not silent:
             print(f'Epoch {epoch+1} | train_loss: {epoch_loss.item()}')
