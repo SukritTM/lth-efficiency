@@ -8,7 +8,7 @@ class GradRecorder:
         self.dtype = dtype
         # self.sample_indices = torch.randint(low=0, high=total_steps, size=(sample_record_count,), generator=self.gen).sort().values
         self.sample_indices = torch.randperm(total_steps, generator=self.gen)[:sample_record_count].sort().values
-        self.early_indices = torch.range(start=0, stop=early_record_count, step=1, dtype=torch.int32)
+        self.early_indices = torch.arange(early_record_count, dtype=torch.int64)
 
         self.internal_counter = 0
 
