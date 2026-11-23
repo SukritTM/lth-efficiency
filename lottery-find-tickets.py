@@ -8,6 +8,7 @@ from LTH.datasets import get_mnist_dataset, get_loaders
 from LTH.traineval import train_loop, evaluate_model, evaluate_model_loader
 from LTH.models import construct_mlp
 from LTH.models import PrunableModel, exclude_tag
+from LTH.grads import GradRecorder
 
 import os
 import pickle
@@ -27,6 +28,8 @@ parser.add_argument('-s', '--hidden-size', default='32')
 parser.add_argument('-d', '--device')
 parser.add_argument('-x', '--exclude', nargs='+', default=None, help='parameter names or types (e.g. bias, weight, 3.weight) to exclude from pruning')
 parser.add_argument('-b', '--seed', default=None, help='offset added to the random seeds; also adds -seed{b} to the output filename')
+parser.add_argument('--grad-early', default='0', help='record gradients for the first N optimizer steps of dense training')
+parser.add_argument('--grad-sample', default='0', help='record gradients at K random optimizer steps of dense training')
 
 arguments = parser.parse_args()
 print(arguments)
@@ -48,6 +51,10 @@ pruning_ratio = float(arguments.pruning_ratio)
 num_rounds = int(arguments.num_rounds)
 NUM_TICKETS = int(arguments.num_tickets)
 EXCLUDE = arguments.exclude
+GRAD_EARLY = int(arguments.grad_early)
+GRAD_SAMPLE = int(arguments.grad_sample)
+RECORD_GRADS = GRAD_EARLY > 0 or GRAD_SAMPLE > 0
+grad_tag = f'-grad{GRAD_EARLY}e{GRAD_SAMPLE}s' if RECORD_GRADS else ''
 
 results['config'] = {
     'epochs': EPOCHS,
@@ -55,6 +62,8 @@ results['config'] = {
     'pruning_ratio': pruning_ratio,
     'hidden_size': hidden_size,
     'exclude': EXCLUDE,
+    'grad_early': GRAD_EARLY,
+    'grad_sample': GRAD_SAMPLE,
 }
 
 
@@ -65,6 +74,7 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
 
     train_losses, train_accs, test_losses, test_accs = [], [], [], []
     models: list[PrunableModel] = []
+    grad_histories = []
     for i in range(n_models):
         timer = pf()
 
@@ -74,7 +84,13 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
         loss_fn = nn.CrossEntropyLoss(reduction='mean')
         optimizer = torch.optim.Adam(params=prunable.parameters(), lr=0.001)
 
-        train_loop(prunable, train_loader, loss_fn, optimizer, EPOCHS, silent=True)
+        recorder = None
+        if RECORD_GRADS:
+            # own generator, seeded per model; does not touch the global RNG, so tickets are unchanged
+            recorder = GradRecorder(len(train_loader) * EPOCHS, GRAD_EARLY, GRAD_SAMPLE, seed=tseed + seed_offset + i)
+
+        train_loop(prunable, train_loader, loss_fn, optimizer, EPOCHS, silent=True, grad_recorder=recorder)
+        if recorder is not None: grad_histories.append(recorder.result())
         train_loss, train_acc = evaluate_model(prunable, train_set.data.to(torch.float32)/255.0, train_set.targets, loss_fn)
         test_loss, test_acc = evaluate_model(prunable, test_set.data.to(torch.float32)/255.0, test_set.targets, loss_fn)
 
@@ -89,13 +105,13 @@ def get_multiple_models(n_models, train_loader, test_loader, train_set, test_set
         if not silent: print(f'Model {i} trained, took {timer:0.2f} seconds', flush=True)
 
     print()
-    return models, train_losses, train_accs, test_losses, test_accs
+    return models, train_losses, train_accs, test_losses, test_accs, grad_histories
 
 
 train_set, test_set = get_mnist_dataset()
 train_loader, test_loader = get_loaders(train_set, test_set, batch_size=64, shuffle=False)
 
-models, train_losses, train_accs, test_losses, test_accs = get_multiple_models(
+models, train_losses, train_accs, test_losses, test_accs, grad_histories = get_multiple_models(
     n_models     = NUM_TICKETS,
     train_loader = train_loader,
     test_loader  = test_loader,
@@ -109,6 +125,7 @@ results['FC-train-losses'] = train_losses
 results['FC-train-accs']   = train_accs
 results['FC-test-losses']  = test_losses
 results['FC-test-accs']    = test_accs
+if RECORD_GRADS: results['gradient-histories'] = grad_histories  # one GradRecorder.result() dict per model, dense training only
 
 loss_fn = nn.CrossEntropyLoss(reduction='mean')
 n_epochs = EPOCHS
@@ -196,7 +213,7 @@ pprint(list(results.keys()))
 if not os.path.exists('experiment_data'):
     os.mkdir('experiment_data')
 
-out_path = f'experiment_data/subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{seed_tag}{exclude_tag(EXCLUDE)}.pkl'
+out_path = f'experiment_data/subnetworks-e{EPOCHS}-r{num_rounds}-p{pruning_ratio:0.4f}-t{NUM_TICKETS}-s{hidden_size}{seed_tag}{exclude_tag(EXCLUDE)}{grad_tag}.pkl'
 with open(out_path, 'wb') as f:
     pickle.dump(results, f)
 
